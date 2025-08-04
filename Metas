@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organograma da Empresa DIY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos para o corpo e fontes com fundo branco */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb; /* bg-gray-50 */
+            color: #1f2937; /* text-gray-800 */
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 2rem;
+            overflow-x: auto;
+        }
+
+        /* Container principal que inclui o logo e título */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 2rem; 
+        }
+        
+        /* Container dos controlos do cabeçalho */
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 3rem;
+            gap: 2rem;
+        }
+
+        /* Estilo do Logo */
+        .company-logo {
+            height: 60px;
+            flex-shrink: 0;
+        }
+
+        /* Estilo do Título */
+        .chart-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #111827;
+            text-align: center;
+            white-space: nowrap;
+            flex-grow: 1;
+        }
+        
+        /* Botão Voltar */
+        .undo-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background-color: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+        .undo-button:hover:not(:disabled) {
+            background-color: #4b5563;
+        }
+        .undo-button:disabled {
+            background-color: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        /* Estrutura do organograma */
+        .org-chart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 80px;
+            text-align: center;
+        }
+
+        /* Container para nós no mesmo nível */
+        .node-group {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            position: relative;
+            padding-top: 80px;
+        }
+        
+        /* Wrapper para o nó e seu ícone */
+        .node-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 1; /* Garante que o nó fique à frente da linha */
+        }
+
+        /* Estilo base para cada nó (pessoa/cargo) */
+        .node {
+            background-color: #4f46e5;
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            min-width: 150px;
+            white-space: nowrap;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            border: 2px solid #6366f1;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .node.secondary {
+            background-color: #f59e0b;
+            color: #1f2937;
+            border-color: #fbbf24;
+        }
+
+        .node[contenteditable="true"] {
+            outline: 2px solid #3b82f6;
+            background-color: #ffffff;
+            color: #1f2937;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Container para os ícones de ação */
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            opacity: 1;
+            pointer-events: auto;
+            background-color: #f9fafb;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            z-index: 10;
+        }
+        
+        .action-button {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .edit-button { background-color: #3b82f6; color: white; }
+        .edit-button:hover { background-color: #2563eb; }
+        .add-button { background-color: #22c55e; color: white; }
+        .add-button:hover { background-color: #16a34a; }
+        .remove-button { background-color: #ef4444; color: white; }
+        .remove-button:hover { background-color: #dc2626; }
+
+
+        /* Ícone de metas */
+        .goals-icon {
+            cursor: pointer;
+            color: #6b7280;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .goals-icon:hover {
+            color: #4f46e5;
+        }
+
+        /* Container para um nó e seus filhos */
+        .node-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding-bottom: 40px;
+        }
+        
+        /* Modal de Metas (Centralizado na Tela) */
+        .goals-modal {
+            display: none;
+            position: fixed; 
+            top: 50%;      
+            left: 50%;     
+            transform: translate(-50%, -50%); 
+            width: 90%; /* ALTERADO: Largura flexível */
+            max-width: 900px; /* ALTERADO: Limite máximo */
+            max-height: 85vh; /* ADICIONADO: Altura máxima */
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+            z-index: 50; 
+            text-align: left;
+            display: none; /* Alterado para flex quando visível */
+            flex-direction: column;
+        }
+        .goals-modal.show {
+            display: flex;
+        }
+        .goals-modal h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #1f2937;
+        }
+        .goals-modal textarea {
+            width: 100%;
+            flex-grow: 1; /* ALTERADO: Para preencher o espaço */
+            min-height: 300px; /* ADICIONADO: Altura mínima usável */
+            background-color: #f3f4f6;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            color: #1f2937;
+            border: 1px solid #d1d5db;
+            resize: vertical;
+        }
+        .goals-modal textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        /* Linhas de conexão */
+        .node-container::before { content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 2px; height: 80px; background-color: #d1d5db; z-index: 0; }
+        .node-wrapper + .node-group::before {
+            content: '';
+            position: absolute;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 80px;
+            background-color: #d1d5db;
+            z-index: 0;
+        }
+        .node-group > .node-container:first-child::before, .org-chart > .node-container::before { display: none; }
+        .node-group > .node-container:first-child::after,
+        .node-group > .node-container:last-child::after { content: ''; position: absolute; top: -80px; height: 2px; background-color: #d1d5db; width: 50%; z-index: 0; }
+        .node-group > .node-container:first-child::after { left: 50%; }
+        .node-group > .node-container:last-child::after { right: 50%; }
+        .node-group > .node-container:only-child::after { display: none; }
+        .node-group > .node-container:not(:first-child):not(:last-child)::after { content: ''; position: absolute; top: -80px; left: 0; height: 2px; background-color: #d1d5db; width: 100%; z-index: 0; }
+        
+        /* Media query para telas pequenas */
+        @media (max-width: 640px) {
+            .goals-modal {
+                width: 95vw;
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header-controls">
+            <img src="http://googleusercontent.com/file_content/8" alt="Logo da Empresa DIY" class="company-logo" onerror="this.style.display='none'">
+            <h1 class="chart-title">Organograma da Empresa DIY</h1>
+            <button id="undo-button" class="undo-button" title="Voltar Ação">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/>
+                    <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/>
+                </svg>
+                Voltar
+            </button>
+        </div>
+        <div class="org-chart">
+            <!-- ESTRUTURA DO ORGANOGRAMA SERÁ INSERIDA AQUI PELO SCRIPT -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const mainContainer = document.querySelector('.main-container');
+            const orgChart = document.querySelector('.org-chart');
+            const undoButton = document.getElementById('undo-button');
+            const history = [];
+
+            // --- INÍCIO DA LÓGICA DE SALVAMENTO ---
+
+            const STORAGE_KEY_HTML = 'orgChartHTML';
+            const STORAGE_KEY_GOALS = 'orgChartGoals';
+            let nodeIdCounter = 0;
+
+            function assignNodeId(node) {
+                if (!node.dataset.nodeId) {
+                    node.dataset.nodeId = `node-${nodeIdCounter++}`;
+                }
+                return node.dataset.nodeId;
+            }
+
+            function saveToLocalStorage() {
+                // Salva o texto das metas
+                const goalsContent = {};
+                const textareas = orgChart.querySelectorAll('textarea');
+                textareas.forEach(textarea => {
+                    const node = textarea.closest('.node-container').querySelector('.node');
+                    if (node) {
+                        const nodeId = assignNodeId(node);
+                        goalsContent[nodeId] = textarea.value;
+                    }
+                });
+                localStorage.setItem(STORAGE_KEY_GOALS, JSON.stringify(goalsContent));
+
+                // Salva a estrutura HTML
+                localStorage.setItem(STORAGE_KEY_HTML, orgChart.innerHTML);
+            }
+
+            function loadFromLocalStorage() {
+                const savedHTML = localStorage.getItem(STORAGE_KEY_HTML);
+                const savedGoals = localStorage.getItem(STORAGE_KEY_GOALS);
+
+                if (!savedHTML) {
+                    return false; // Não há nada salvo
+                }
+
+                orgChart.innerHTML = savedHTML;
+
+                if (savedGoals) {
+                    const goalsContent = JSON.parse(savedGoals);
+                    Object.keys(goalsContent).forEach(nodeId => {
+                        const node = orgChart.querySelector(`[data-node-id="${nodeId}"]`);
+                        if (node) {
+                            const textarea = node.closest('.node-container').querySelector('textarea');
+                            if (textarea) {
+                                textarea.value = goalsContent[nodeId];
+                            }
+                        }
+                    });
+                }
+                return true;
+            }
+
+            // --- FIM DA LÓGICA DE SALVAMENTO ---
+
+            // Estado inicial do organograma
+            const initialStateHTML = `
+                <div class="node-container">
+                    <div class="node-group" style="padding-top: 0;">
+                        <div class="node-container" data-level="top">
+                            <div class="node-wrapper">
+                                <div class="node">CEO | LEONARDO</div>
+                                <div class="action-buttons">
+                                    <span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>
+                                    <button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button>
+                                    <button class="action-button add-button" title="Adicionar Colaborador">+</button>
+                                </div>
+                            </div>
+                            <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                            <div class="node-group">
+                                <!-- Nível 2: Diretores C-Level & CFO -->
+                                <div class="node-container">
+                                    <div class="node-wrapper"><div class="node">CFO | KARINE</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
+                                    <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                                    <div class="node-group">
+                                        <div class="node-container">
+                                            <div class="node-wrapper"><div class="node secondary">FINANCEIRO |</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
+                                            <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="node-container">
+                                    <div class="node-wrapper"><div class="node">CMO | ROD L</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
+                                    <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                                    <div class="node-group">
+                                        <div class="node-container">
+                                            <div class="node-wrapper"><div class="node secondary">DIRETOR MARK | ROD C</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
+                                            <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                                            <div class="node-group">
+                                                <div class="node-container"><div class="node-wrapper"><div class="node secondary">IS | JEFF</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div></div>
+                                                <div class="node-container"><div class="node-wrapper"><div class="node secondary">MARKETING DIGITAL</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div></div>
+                                                <div class="node-container"><div class="node-wrapper"><div class="node secondary">EDITOR | CAIO</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div></div>
+                                                <div class="node-container"><div class="node-wrapper"><div class="node secondary">UX</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="node-container">
+                                    <div class="node-wrapper"><div class="node">CPO | LUIZ</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
+                                    <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                                    <div class="node-group">
+                                        <div class="node-container">
+                                            <div class="node-wrapper"><div class="node secondary">CPO | GIOVANNI</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
+                                            <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                                            <div class="node-group">
+                                                <div class="node-container"><div class="node-wrapper"><div class="node secondary">DIRETOR LOGISTICA | YURI & CAIO</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                                                    <div class="node-group">
+                                                        <div class="node-container"><div class="node-wrapper"><div class="node secondary">EXPEDIÇÃO | 5 PESSOAS</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="node-container">
+                                    <div class="node-wrapper"><div class="node">VP EUROPA | ISSAC</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
+                                    <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                                    <div class="node-group">
+                                        <div class="node-container">
+                                            <div class="node-wrapper"><div class="node secondary">DIRETOR COMERCIAL | VINICIUS BRITO</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
+                                            <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                                            <div class="node-group">
+                                                <div class="node-container">
+                                                    <div class="node-wrapper"><div class="node">CSS</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
+                                                    <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                                                    <div class="node-group">
+                                                        <div class="node-container"><div class="node-wrapper"><div class="node secondary">SUPORTE DSEC & PAGEUBIR | MARI</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div></div>
+                                                        <div class="node-container"><div class="node-wrapper"><div class="node secondary">SUPORTE DSEC & PAGEUBIR | LARA</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div></div>
+                                                        <div class="node-container"><div class="node-wrapper"><div class="node secondary">SUPORTE ALFRED | LUCAS</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="node-container">
+                                    <div class="node-wrapper"><div class="node">CTO | ARTHUR</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
+                                    <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                                    <div class="node-group">
+                                        <div class="node-container"><div class="node-wrapper"><div class="node secondary">DEV PLENO | JOÃO</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div></div>
+                                        <div class="node-container"><div class="node-wrapper"><div class="node secondary">DEV PLENO | JEFF</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div></div>
+                                        <div class="node-container"><div class="node-wrapper"><div class="node secondary">DEV PLENO | LUCAS</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div></div>
+                                        <div class="node-container"><div class="node-wrapper"><div class="node secondary">DEV JUNIOR | MACIEL</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div><div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            function updateUndoButtonState() {
+                undoButton.disabled = history.length === 0;
+            }
+
+            function saveState() {
+                history.push(orgChart.innerHTML);
+                updateUndoButtonState();
+            }
+            
+            function loadState(state) {
+                orgChart.innerHTML = state;
+            }
+
+            function closeAllGoalsModals() {
+                document.querySelectorAll('.goals-modal.show').forEach(openModal => {
+                    openModal.classList.remove('show');
+                });
+            }
+
+            function createEmployeeNodeHTML() {
+                return `
+                    <div class="node-container">
+                        <div class="node-wrapper">
+                            <div class="node secondary">Novo Colaborador</div>
+                            <div class="action-buttons">
+                                <span class="goals-icon" title="Definir Metas">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                                </span>
+                                <button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button>
+                                <button class="action-button add-button" title="Adicionar Colaborador">+</button>
+                                <button class="action-button remove-button" title="Remover Colaborador">-</button>
+                            </div>
+                        </div>
+                        <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                    </div>
+                `;
+            }
+
+            mainContainer.addEventListener('click', function(event) {
+                const goalsIcon = event.target.closest('.goals-icon');
+                const addButton = event.target.closest('.add-button');
+                const removeButton = event.target.closest('.remove-button');
+                const editButton = event.target.closest('.edit-button');
+
+                if (goalsIcon) {
+                    const parentContainer = goalsIcon.closest('.node-container');
+                    const modal = parentContainer.querySelector('.goals-modal');
+                    const node = parentContainer.querySelector('.node');
+                    const modalTitle = modal.querySelector('h3');
+                    modalTitle.textContent = 'Metas para ' + node.textContent;
+                    const isAlreadyOpen = modal.classList.contains('show');
+                    closeAllGoalsModals();
+                    if (!isAlreadyOpen) {
+                        modal.classList.add('show');
+                    }
+                    event.stopPropagation();
+                } else if (addButton) {
+                    saveState();
+                    const parentNodeContainer = addButton.closest('.node-container');
+                    let childNodeGroup = parentNodeContainer.querySelector('.node-group');
+                    if (!childNodeGroup) {
+                        childNodeGroup = document.createElement('div');
+                        childNodeGroup.className = 'node-group';
+                        parentNodeContainer.appendChild(childNodeGroup);
+                    }
+                    const newEmployeeHTML = createEmployeeNodeHTML();
+                    childNodeGroup.insertAdjacentHTML('beforeend', newEmployeeHTML);
+                    saveToLocalStorage();
+                } else if (removeButton) {
+                    const nodeContainerToRemove = removeButton.closest('.node-container');
+                    if (nodeContainerToRemove.dataset.level !== 'top') {
+                        saveState();
+                        const parentGroup = nodeContainerToRemove.parentElement;
+                        nodeContainerToRemove.remove();
+                        if (parentGroup && parentGroup.classList.contains('node-group') && !parentGroup.hasChildNodes()) {
+                            parentGroup.remove();
+                        }
+                        saveToLocalStorage();
+                    }
+                } else if (editButton) {
+                    const nodeWrapper = editButton.closest('.node-wrapper');
+                    const node = nodeWrapper.querySelector('.node');
+                    
+                    node.setAttribute('contenteditable', 'true');
+                    node.focus();
+                    
+                    const selection = window.getSelection();
+                    const range = document.createRange();
+                    range.selectNodeContents(node);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+
+                    const disableEditing = () => {
+                        node.setAttribute('contenteditable', 'false');
+                        node.removeEventListener('blur', disableEditing);
+                        node.removeEventListener('keydown', handleKeydown);
+                        saveToLocalStorage(); // Salva após a edição
+                    };
+
+                    const handleKeydown = (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            node.blur();
+                        }
+                    };
+
+                    node.addEventListener('blur', disableEditing);
+                    node.addEventListener('keydown', handleKeydown);
+
+                } else if (!event.target.closest('.goals-modal')) {
+                    closeAllGoalsModals();
+                }
+            });
+
+            // Salva as alterações no texto das metas
+            mainContainer.addEventListener('input', function(event) {
+                if (event.target.tagName.toLowerCase() === 'textarea') {
+                    saveToLocalStorage();
+                }
+            });
+
+            undoButton.addEventListener('click', () => {
+                if (history.length > 0) {
+                    loadState(history.pop());
+                    saveToLocalStorage(); // Salva o estado revertido
+                    updateUndoButtonState();
+                }
+            });
+
+            // Carregar o estado inicial e configurar o botão de voltar
+            if (!loadFromLocalStorage()) {
+                loadState(initialStateHTML);
+            }
+            // Garante que todos os nós tenham IDs para o salvamento de metas
+            orgChart.querySelectorAll('.node').forEach(node => assignNodeId(node));
+            updateUndoButtonState();
+        });
+    </script>
+</body>
+</html>
