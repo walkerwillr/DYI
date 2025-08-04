@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organograma da Empresa DIY</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -201,9 +202,9 @@
             top: 50%;      
             left: 50%;     
             transform: translate(-50%, -50%); 
-            width: 90%; /* ALTERADO: Largura flexível */
-            max-width: 900px; /* ALTERADO: Limite máximo */
-            max-height: 85vh; /* ADICIONADO: Altura máxima */
+            width: 90%; 
+            max-width: 900px;
+            max-height: 85vh;
             background-color: #ffffff;
             border: 1px solid #d1d5db;
             border-radius: 0.75rem;
@@ -211,7 +212,7 @@
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
             z-index: 50; 
             text-align: left;
-            display: none; /* Alterado para flex quando visível */
+            display: none; 
             flex-direction: column;
         }
         .goals-modal.show {
@@ -225,8 +226,8 @@
         }
         .goals-modal textarea {
             width: 100%;
-            flex-grow: 1; /* ALTERADO: Para preencher o espaço */
-            min-height: 300px; /* ADICIONADO: Altura mínima usável */
+            flex-grow: 1; 
+            min-height: 300px;
             background-color: #f3f4f6;
             border-radius: 0.25rem;
             padding: 0.5rem;
@@ -260,7 +261,6 @@
         .node-group > .node-container:only-child::after { display: none; }
         .node-group > .node-container:not(:first-child):not(:last-child)::after { content: ''; position: absolute; top: -80px; left: 0; height: 2px; background-color: #d1d5db; width: 100%; z-index: 0; }
         
-        /* Media query para telas pequenas */
         @media (max-width: 640px) {
             .goals-modal {
                 width: 95vw;
@@ -288,65 +288,72 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', async function () {
             const mainContainer = document.querySelector('.main-container');
             const orgChart = document.querySelector('.org-chart');
             const undoButton = document.getElementById('undo-button');
             const history = [];
 
-            // --- INÍCIO DA LÓGICA DE SALVAMENTO ---
+            // --- INÍCIO DA LÓGICA DE SALVAMENTO COM SUPABASE ---
 
-            const STORAGE_KEY_HTML = 'orgChartHTML';
-            const STORAGE_KEY_GOALS = 'orgChartGoals';
-            let nodeIdCounter = 0;
+            const SUPABASE_URL = 'https://jvecwvzvexbkoikrslsk.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2ZWN3dnp2ZXhia29pa3JzbHNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzMzY3NzUsImV4cCI6MjA2OTkxMjc3NX0.Q1NUJQnQ5PbIGUjDl8v9ta-kUuuoCB7MXjVvYTTvcu0';
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            function assignNodeId(node) {
-                if (!node.dataset.nodeId) {
-                    node.dataset.nodeId = `node-${nodeIdCounter++}`;
-                }
-                return node.dataset.nodeId;
-            }
-
-            function saveToLocalStorage() {
-                // Salva o texto das metas
-                const goalsContent = {};
-                const textareas = orgChart.querySelectorAll('textarea');
-                textareas.forEach(textarea => {
-                    const node = textarea.closest('.node-container').querySelector('.node');
-                    if (node) {
-                        const nodeId = assignNodeId(node);
-                        goalsContent[nodeId] = textarea.value;
-                    }
-                });
-                localStorage.setItem(STORAGE_KEY_GOALS, JSON.stringify(goalsContent));
-
-                // Salva a estrutura HTML
-                localStorage.setItem(STORAGE_KEY_HTML, orgChart.innerHTML);
-            }
-
-            function loadFromLocalStorage() {
-                const savedHTML = localStorage.getItem(STORAGE_KEY_HTML);
-                const savedGoals = localStorage.getItem(STORAGE_KEY_GOALS);
-
-                if (!savedHTML) {
-                    return false; // Não há nada salvo
-                }
-
-                orgChart.innerHTML = savedHTML;
-
-                if (savedGoals) {
-                    const goalsContent = JSON.parse(savedGoals);
-                    Object.keys(goalsContent).forEach(nodeId => {
-                        const node = orgChart.querySelector(`[data-node-id="${nodeId}"]`);
-                        if (node) {
-                            const textarea = node.closest('.node-container').querySelector('textarea');
-                            if (textarea) {
-                                textarea.value = goalsContent[nodeId];
-                            }
+            async function saveOrganogramState() {
+                try {
+                    // Salva o conteúdo HTML e as metas numa única chamada
+                    const goalsContent = {};
+                    orgChart.querySelectorAll('.node').forEach(node => {
+                        const nodeId = node.dataset.nodeId;
+                        const textarea = node.closest('.node-container').querySelector('textarea');
+                        if (nodeId && textarea) {
+                            goalsContent[nodeId] = textarea.value;
                         }
                     });
+
+                    const { error } = await supabase
+                        .from('organograma')
+                        .upsert({ id: 1, html_content: orgChart.innerHTML, goals_content: goalsContent });
+                    if (error) throw error;
+                } catch (error) {
+                    console.error('Erro ao salvar no Supabase:', error);
                 }
-                return true;
+            }
+
+            async function loadInitialState() {
+                try {
+                    const { data, error } = await supabase
+                        .from('organograma')
+                        .select('html_content, goals_content')
+                        .eq('id', 1)
+                        .single();
+
+                    if (error && error.code !== 'PGRST116') { // PGRST116 = row not found
+                        throw error;
+                    }
+
+                    if (data && data.html_content) {
+                        loadState(data.html_content);
+                        // Carrega as metas salvas
+                        if (data.goals_content) {
+                             Object.keys(data.goals_content).forEach(nodeId => {
+                                const node = orgChart.querySelector(`[data-node-id="${nodeId}"]`);
+                                if (node) {
+                                    const textarea = node.closest('.node-container').querySelector('textarea');
+                                    if (textarea) {
+                                        textarea.value = data.goals_content[nodeId];
+                                    }
+                                }
+                            });
+                        }
+                    } else {
+                        loadState(initialStateHTML);
+                    }
+                } catch (error) {
+                    console.error('Erro ao carregar do Supabase:', error);
+                    loadState(initialStateHTML); // Carrega o padrão em caso de erro
+                }
             }
 
             // --- FIM DA LÓGICA DE SALVAMENTO ---
@@ -514,7 +521,7 @@
                     }
                     const newEmployeeHTML = createEmployeeNodeHTML();
                     childNodeGroup.insertAdjacentHTML('beforeend', newEmployeeHTML);
-                    saveToLocalStorage();
+                    saveOrganogramState();
                 } else if (removeButton) {
                     const nodeContainerToRemove = removeButton.closest('.node-container');
                     if (nodeContainerToRemove.dataset.level !== 'top') {
@@ -524,7 +531,7 @@
                         if (parentGroup && parentGroup.classList.contains('node-group') && !parentGroup.hasChildNodes()) {
                             parentGroup.remove();
                         }
-                        saveToLocalStorage();
+                        saveOrganogramState();
                     }
                 } else if (editButton) {
                     const nodeWrapper = editButton.closest('.node-wrapper');
@@ -543,7 +550,7 @@
                         node.setAttribute('contenteditable', 'false');
                         node.removeEventListener('blur', disableEditing);
                         node.removeEventListener('keydown', handleKeydown);
-                        saveToLocalStorage(); // Salva após a edição
+                        saveOrganogramState(); // Salva após a edição
                     };
 
                     const handleKeydown = (e) => {
@@ -564,24 +571,20 @@
             // Salva as alterações no texto das metas
             mainContainer.addEventListener('input', function(event) {
                 if (event.target.tagName.toLowerCase() === 'textarea') {
-                    saveToLocalStorage();
+                    saveOrganogramState();
                 }
             });
 
             undoButton.addEventListener('click', () => {
                 if (history.length > 0) {
                     loadState(history.pop());
-                    saveToLocalStorage(); // Salva o estado revertido
+                    saveOrganogramState(); // Salva o estado revertido
                     updateUndoButtonState();
                 }
             });
 
             // Carregar o estado inicial e configurar o botão de voltar
-            if (!loadFromLocalStorage()) {
-                loadState(initialStateHTML);
-            }
-            // Garante que todos os nós tenham IDs para o salvamento de metas
-            orgChart.querySelectorAll('.node').forEach(node => assignNodeId(node));
+            await loadInitialState();
             updateUndoButtonState();
         });
     </script>
