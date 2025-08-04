@@ -1,0 +1,256 @@
+/* Estilos para o corpo e fontes com fundo branco */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f9fafb; /* bg-gray-50 */
+    color: #1f2937; /* text-gray-800 */
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 2rem;
+    overflow-x: auto;
+}
+
+/* Container principal que inclui o logo e título */
+.main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 2rem; 
+}
+
+/* Container dos controlos do cabeçalho */
+.header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 3rem;
+    gap: 2rem;
+}
+
+/* Estilo do Logo */
+.company-logo {
+    height: 60px;
+    flex-shrink: 0;
+}
+
+/* Estilo do Título */
+.chart-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #111827;
+    text-align: center;
+    white-space: nowrap;
+    flex-grow: 1;
+}
+
+/* Botão Voltar */
+.undo-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background-color: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+.undo-button:hover:not(:disabled) {
+    background-color: #4b5563;
+}
+.undo-button:disabled {
+    background-color: #d1d5db;
+    cursor: not-allowed;
+}
+
+/* Estrutura do organograma */
+.org-chart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 80px;
+    text-align: center;
+}
+
+/* Container para nós no mesmo nível */
+.node-group {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    position: relative;
+    padding-top: 80px;
+}
+
+/* Wrapper para o nó e seu ícone */
+.node-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 1; /* Garante que o nó fique à frente da linha */
+}
+
+/* Estilo base para cada nó (pessoa/cargo) */
+.node {
+    background-color: #4f46e5;
+    color: #ffffff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    min-width: 150px;
+    white-space: nowrap;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    border: 2px solid #6366f1;
+    transition: all 0.2s ease-in-out;
+}
+
+.node.secondary {
+    background-color: #f59e0b;
+    color: #1f2937;
+    border-color: #fbbf24;
+}
+
+.node[contenteditable="true"] {
+    outline: 2px solid #3b82f6;
+    background-color: #ffffff;
+    color: #1f2937;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4);
+}
+
+/* Container para os ícones de ação */
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 8px;
+    opacity: 1;
+    pointer-events: auto;
+    background-color: #f9fafb;
+    padding: 4px 8px;
+    border-radius: 9999px;
+    z-index: 10;
+}
+
+.action-button {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.edit-button { background-color: #3b82f6; color: white; }
+.edit-button:hover { background-color: #2563eb; }
+.add-button { background-color: #22c55e; color: white; }
+.add-button:hover { background-color: #16a34a; }
+.remove-button { background-color: #ef4444; color: white; }
+.remove-button:hover { background-color: #dc2626; }
+
+/* Ícone de metas */
+.goals-icon {
+    cursor: pointer;
+    color: #6b7280;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+}
+.goals-icon:hover {
+    color: #4f46e5;
+}
+
+/* Container para um nó e seus filhos */
+.node-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding-bottom: 40px;
+}
+
+/* Modal de Metas (Centralizado na Tela) */
+.goals-modal {
+    display: none;
+    position: fixed; 
+    top: 50%;      
+    left: 50%;     
+    transform: translate(-50%, -50%); 
+    width: 90%; 
+    max-width: 900px;
+    max-height: 85vh;
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+    z-index: 50; 
+    text-align: left;
+    display: none; 
+    flex-direction: column;
+}
+.goals-modal.show {
+    display: flex;
+}
+.goals-modal h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #1f2937;
+}
+.goals-modal textarea {
+    width: 100%;
+    flex-grow: 1; 
+    min-height: 300px;
+    background-color: #f3f4f6;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    color: #1f2937;
+    border: 1px solid #d1d5db;
+    resize: vertical;
+}
+.goals-modal textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+}
+
+/* Linhas de conexão */
+.node-container::before { content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 2px; height: 80px; background-color: #d1d5db; z-index: 0; }
+.node-wrapper + .node-group::before {
+    content: '';
+    position: absolute;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 80px;
+    background-color: #d1d5db;
+    z-index: 0;
+}
+.node-group > .node-container:first-child::before, .org-chart > .node-container::before { display: none; }
+.node-group > .node-container:first-child::after,
+.node-group > .node-container:last-child::after { content: ''; position: absolute; top: -80px; height: 2px; background-color: #d1d5db; width: 50%; z-index: 0; }
+.node-group > .node-container:first-child::after { left: 50%; }
+.node-group > .node-container:last-child::after { right: 50%; }
+.node-group > .node-container:only-child::after { display: none; }
+.node-group > .node-container:not(:first-child):not(:last-child)::after { content: ''; position: absolute; top: -80px; left: 0; height: 2px; background-color: #d1d5db; width: 100%; z-index: 0; }
+
+@media (max-width: 640px) {
+    .goals-modal {
+        width: 95vw;
+        padding: 0.75rem;
+    }
+} 
