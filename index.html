@@ -302,19 +302,14 @@
 
             async function saveOrganogramState() {
                 try {
-                    // Salva o conteúdo HTML e as metas numa única chamada
-                    const goalsContent = {};
-                    orgChart.querySelectorAll('.node').forEach(node => {
-                        const nodeId = node.dataset.nodeId;
-                        const textarea = node.closest('.node-container').querySelector('textarea');
-                        if (nodeId && textarea) {
-                            goalsContent[nodeId] = textarea.value;
-                        }
+                    // Antes de salvar, atualiza o conteúdo das textareas no HTML
+                    orgChart.querySelectorAll('textarea').forEach(textarea => {
+                        textarea.innerHTML = textarea.value;
                     });
 
                     const { error } = await supabase
                         .from('organograma')
-                        .upsert({ id: 1, html_content: orgChart.innerHTML, goals_content: goalsContent });
+                        .upsert({ id: 1, html_content: orgChart.innerHTML });
                     if (error) throw error;
                 } catch (error) {
                     console.error('Erro ao salvar no Supabase:', error);
@@ -325,7 +320,7 @@
                 try {
                     const { data, error } = await supabase
                         .from('organograma')
-                        .select('html_content, goals_content')
+                        .select('html_content')
                         .eq('id', 1)
                         .single();
 
@@ -335,18 +330,6 @@
 
                     if (data && data.html_content) {
                         loadState(data.html_content);
-                        // Carrega as metas salvas
-                        if (data.goals_content) {
-                             Object.keys(data.goals_content).forEach(nodeId => {
-                                const node = orgChart.querySelector(`[data-node-id="${nodeId}"]`);
-                                if (node) {
-                                    const textarea = node.closest('.node-container').querySelector('textarea');
-                                    if (textarea) {
-                                        textarea.value = data.goals_content[nodeId];
-                                    }
-                                }
-                            });
-                        }
                     } else {
                         loadState(initialStateHTML);
                     }
