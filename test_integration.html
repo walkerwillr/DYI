@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Integração - Supabase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teste de Integração - Supabase</h1>
+    
+    <div class="test-section info">
+        <h3>Status da Conexão</h3>
+        <div id="connection-status">Verificando...</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Testes de CRUD</h3>
+        <button class="btn-primary" onclick="testCreateNode()">Criar Nó</button>
+        <button class="btn-primary" onclick="testReadNodes()">Ler Nós</button>
+        <button class="btn-primary" onclick="testUpdateNode()">Atualizar Nó</button>
+        <button class="btn-danger" onclick="testDeleteNode()">Deletar Nó</button>
+        <div id="crud-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Teste de Árvore</h3>
+        <button class="btn-success" onclick="testTreeBuilding()">Construir Árvore</button>
+        <button class="btn-success" onclick="testTreeRendering()">Renderizar HTML</button>
+        <div id="tree-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Logs</h3>
+        <div id="logs"></div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <!-- Scripts da aplicação -->
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/supabase.js"></script>
+
+    <script>
+        // Funções de teste
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logsDiv.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+        }
+
+        async function testConnection() {
+            try {
+                const { data, error } = await supabase
+                    .from('nodes')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                document.getElementById('connection-status').innerHTML = 
+                    '<span style="color: green;">✅ Conectado ao Supabase</span>';
+                log('Conexão com Supabase estabelecida com sucesso');
+            } catch (error) {
+                document.getElementById('connection-status').innerHTML = 
+                    '<span style="color: red;">❌ Erro de conexão: ' + error.message + '</span>';
+                log('Erro de conexão: ' + error.message, 'error');
+            }
+        }
+
+        async function testCreateNode() {
+            try {
+                const testNode = new Node(null, 'Teste Node', 'Metas de teste', null);
+                const savedNode = await saveNodeToSupabase(testNode);
+                
+                document.getElementById('crud-results').innerHTML = 
+                    `<div class="success">✅ Nó criado com ID: ${savedNode.id}</div>`;
+                log(`Nó criado com sucesso - ID: ${savedNode.id}`);
+            } catch (error) {
+                document.getElementById('crud-results').innerHTML = 
+                    `<div class="error">❌ Erro ao criar nó: ${error.message}</div>`;
+                log('Erro ao criar nó: ' + error.message, 'error');
+            }
+        }
+
+        async function testReadNodes() {
+            try {
+                const { data, error } = await supabase
+                    .from('nodes')
+                    .select('*')
+                    .order('id');
+                
+                if (error) throw error;
+                
+                document.getElementById('crud-results').innerHTML = 
+                    `<div class="success">✅ ${data.length} nós carregados</div>
+                     <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                log(`Nós carregados: ${data.length}`);
+            } catch (error) {
+                document.getElementById('crud-results').innerHTML = 
+                    `<div class="error">❌ Erro ao ler nós: ${error.message}</div>`;
+                log('Erro ao ler nós: ' + error.message, 'error');
+            }
+        }
+
+        async function testUpdateNode() {
+            try {
+                // Primeiro, buscar um nó existente
+                const { data, error } = await supabase
+                    .from('nodes')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                if (data.length > 0) {
+                    const nodeId = data[0].id;
+                    await updateNodeAndSave(nodeId, { 
+                        name: 'Nó Atualizado - ' + new Date().toLocaleTimeString() 
+                    });
+                    
+                    document.getElementById('crud-results').innerHTML = 
+                        `<div class="success">✅ Nó ${nodeId} atualizado</div>`;
+                    log(`Nó ${nodeId} atualizado com sucesso`);
+                } else {
+                    document.getElementById('crud-results').innerHTML = 
+                        `<div class="info">ℹ️ Nenhum nó encontrado para atualizar</div>`;
+                    log('Nenhum nó encontrado para atualizar');
+                }
+            } catch (error) {
+                document.getElementById('crud-results').innerHTML = 
+                    `<div class="error">❌ Erro ao atualizar nó: ${error.message}</div>`;
+                log('Erro ao atualizar nó: ' + error.message, 'error');
+            }
+        }
+
+        async function testDeleteNode() {
+            try {
+                // Buscar um nó para deletar (exceto nós raiz)
+                const { data, error } = await supabase
+                    .from('nodes')
+                    .select('*')
+                    .not('parent_id', 'is', null)
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                if (data.length > 0) {
+                    const nodeId = data[0].id;
+                    await removeNodeAndSave(nodeId);
+                    
+                    document.getElementById('crud-results').innerHTML = 
+                        `<div class="success">✅ Nó ${nodeId} deletado</div>`;
+                    log(`Nó ${nodeId} deletado com sucesso`);
+                } else {
+                    document.getElementById('crud-results').innerHTML = 
+                        `<div class="info">ℹ️ Nenhum nó filho encontrado para deletar</div>`;
+                    log('Nenhum nó filho encontrado para deletar');
+                }
+            } catch (error) {
+                document.getElementById('crud-results').innerHTML = 
+                    `<div class="error">❌ Erro ao deletar nó: ${error.message}</div>`;
+                log('Erro ao deletar nó: ' + error.message, 'error');
+            }
+        }
+
+        async function testTreeBuilding() {
+            try {
+                const success = await loadNodesFromSupabase();
+                
+                if (success) {
+                    const nodeCount = getAllNodesAsArray().length;
+                    const rootCount = rootNodes.length;
+                    
+                    document.getElementById('tree-results').innerHTML = 
+                        `<div class="success">✅ Árvore construída: ${nodeCount} nós totais, ${rootCount} nós raiz</div>`;
+                    log(`Árvore construída com ${nodeCount} nós (${rootCount} raiz)`);
+                } else {
+                    document.getElementById('tree-results').innerHTML = 
+                        `<div class="error">❌ Erro ao construir árvore</div>`;
+                    log('Erro ao construir árvore', 'error');
+                }
+            } catch (error) {
+                document.getElementById('tree-results').innerHTML = 
+                    `<div class="error">❌ Erro: ${error.message}</div>`;
+                log('Erro ao testar construção da árvore: ' + error.message, 'error');
+            }
+        }
+
+        function testTreeRendering() {
+            try {
+                const html = renderTreeToHTML();
+                
+                document.getElementById('tree-results').innerHTML = 
+                    `<div class="success">✅ HTML gerado (${html.length} caracteres)</div>
+                     <pre>${html.substring(0, 500)}...</pre>`;
+                log(`HTML gerado com ${html.length} caracteres`);
+            } catch (error) {
+                document.getElementById('tree-results').innerHTML = 
+                    `<div class="error">❌ Erro ao renderizar: ${error.message}</div>`;
+                log('Erro ao renderizar HTML: ' + error.message, 'error');
+            }
+        }
+
+        // Inicializar testes
+        window.addEventListener('load', function() {
+            log('Iniciando testes de integração...');
+            testConnection();
+        });
+    </script>
+</body>
+</html> 

@@ -1,4 +1,4 @@
-// Event listeners e lógica de interação
+// Event listeners e lógica de interação - Nova estrutura com Supabase
 
 function setupEventListeners() {
     // Event listener principal para cliques no container
@@ -24,7 +24,7 @@ function setupEventListeners() {
     // Event listener para mudanças nas textareas
     mainContainer.addEventListener('input', function(event) {
         if (event.target.tagName.toLowerCase() === 'textarea') {
-            saveOrganogramState();
+            handleGoalsTextareaChange(event.target);
         }
     });
 
@@ -45,30 +45,38 @@ function handleGoalsIconClick(goalsIcon) {
     }
 }
 
-function handleAddButtonClick(addButton) {
-    saveState();
-    const parentNodeContainer = addButton.closest('.node-container');
-    let childNodeGroup = parentNodeContainer.querySelector('.node-group');
-    if (!childNodeGroup) {
-        childNodeGroup = document.createElement('div');
-        childNodeGroup.className = 'node-group';
-        parentNodeContainer.appendChild(childNodeGroup);
+async function handleAddButtonClick(addButton) {
+    try {
+        saveState();
+        const parentNodeContainer = addButton.closest('.node-container');
+        const parentNodeId = parseInt(parentNodeContainer.dataset.nodeId);
+        
+        // Adicionar novo nó e salvar no Supabase
+        await addNodeAndSave('Novo Colaborador', parentNodeId);
+        
+        updateUndoButtonState();
+    } catch (error) {
+        console.error('Erro ao adicionar nó:', error);
+        alert('Erro ao adicionar colaborador. Tente novamente.');
     }
-    const newEmployeeHTML = createEmployeeNodeHTML();
-    childNodeGroup.insertAdjacentHTML('beforeend', newEmployeeHTML);
-    saveOrganogramState();
 }
 
-function handleRemoveButtonClick(removeButton) {
-    const nodeContainerToRemove = removeButton.closest('.node-container');
-    if (nodeContainerToRemove.dataset.level !== 'top') {
-        saveState();
-        const parentGroup = nodeContainerToRemove.parentElement;
-        nodeContainerToRemove.remove();
-        if (parentGroup && parentGroup.classList.contains('node-group') && !parentGroup.hasChildNodes()) {
-            parentGroup.remove();
+async function handleRemoveButtonClick(removeButton) {
+    try {
+        const nodeContainerToRemove = removeButton.closest('.node-container');
+        const nodeId = parseInt(nodeContainerToRemove.dataset.nodeId);
+        
+        if (nodeContainerToRemove.dataset.level !== 'top') {
+            saveState();
+            
+            // Remover nó e salvar no Supabase
+            await removeNodeAndSave(nodeId);
+            
+            updateUndoButtonState();
         }
-        saveOrganogramState();
+    } catch (error) {
+        console.error('Erro ao remover nó:', error);
+        alert('Erro ao remover colaborador. Tente novamente.');
     }
 }
 
@@ -85,11 +93,22 @@ function handleEditButtonClick(editButton) {
     selection.removeAllRanges();
     selection.addRange(range);
 
-    const disableEditing = () => {
+    const disableEditing = async () => {
         node.setAttribute('contenteditable', 'false');
         node.removeEventListener('blur', disableEditing);
         node.removeEventListener('keydown', handleKeydown);
-        saveOrganogramState(); // Salva após a edição
+        
+        // Salvar alteração no Supabase
+        const nodeContainer = node.closest('.node-container');
+        const nodeId = parseInt(nodeContainer.dataset.nodeId);
+        const newName = node.textContent;
+        
+        try {
+            await updateNodeAndSave(nodeId, { name: newName });
+        } catch (error) {
+            console.error('Erro ao salvar alteração:', error);
+            alert('Erro ao salvar alteração. Tente novamente.');
+        }
     };
 
     const handleKeydown = (e) => {
@@ -103,10 +122,23 @@ function handleEditButtonClick(editButton) {
     node.addEventListener('keydown', handleKeydown);
 }
 
+async function handleGoalsTextareaChange(textarea) {
+    try {
+        const nodeContainer = textarea.closest('.node-container');
+        const nodeId = parseInt(nodeContainer.dataset.nodeId);
+        const newGoals = textarea.value;
+        
+        // Salvar alteração no Supabase
+        await updateNodeAndSave(nodeId, { goals: newGoals });
+    } catch (error) {
+        console.error('Erro ao salvar metas:', error);
+        alert('Erro ao salvar metas. Tente novamente.');
+    }
+}
+
 function handleUndoButtonClick() {
     if (history.length > 0) {
         loadState(history.pop());
-        saveOrganogramState(); // Salva o estado revertido
         updateUndoButtonState();
     }
 } 

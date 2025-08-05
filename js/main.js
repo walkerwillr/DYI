@@ -1,16 +1,22 @@
-// Arquivo principal da aplicação
+// Arquivo principal da aplicação - Nova estrutura com Supabase
 
 let mainContainer = document.querySelector('.main-container');
 let orgChart = document.querySelector('.org-chart');
 let undoButton = document.getElementById('undo-button');
 
 document.addEventListener('DOMContentLoaded', async function () {
-  // Inicialização dos elementos principais
+    try {
+        // Configuração dos event listeners
+        setupEventListeners();
 
-  // Configuração dos event listeners
-  setupEventListeners();
-
-  // Carregar o estado inicial e configurar o botão de voltar
-  await loadInitialState();
-  updateUndoButtonState();
+        // Carregar dados do Supabase e renderizar
+        await loadInitialState();
+        updateUndoButtonState();
+        
+        console.log('Aplicação inicializada com sucesso');
+    } catch (error) {
+        console.error('Erro ao inicializar aplicação:', error);
+        // Em caso de erro, carregar estado padrão
+        loadState(initialStateHTML);
+    }
 });

@@ -1,6 +1,10 @@
-// Templates HTML para criação de novos nós
+// Templates HTML para criação de novos nós - Nova estrutura
 
+// Esta função não é mais necessária pois os nós são criados dinamicamente
+// através da função addNodeAndSave no supabase.js
 function createEmployeeNodeHTML() {
+    // Esta função é mantida para compatibilidade, mas não é mais usada
+    // Os nós são agora criados dinamicamente através da integração com Supabase
     return `
         <div class="node-container">
             <div class="node-wrapper">
@@ -17,4 +21,4 @@ function createEmployeeNodeHTML() {
             <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
         </div>
     `;
-} 
+}

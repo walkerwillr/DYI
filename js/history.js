@@ -3,20 +3,20 @@
 const history = [];
 
 function updateUndoButtonState() {
-    undoButton.disabled = history.length === 0;
+  undoButton.disabled = history.length === 0;
 }
 
 function saveState() {
-    history.push(orgChart.innerHTML);
-    updateUndoButtonState();
+  history.push(orgChart.innerHTML);
+  updateUndoButtonState();
 }
 
 function loadState(state) {
-    orgChart.innerHTML = state;
+  orgChart.innerHTML = state;
 }
 
 function closeAllGoalsModals() {
-    document.querySelectorAll('.goals-modal.show').forEach(openModal => {
-        openModal.classList.remove('show');
-    });
-} 
+  document.querySelectorAll('.goals-modal.show').forEach((openModal) => {
+    openModal.classList.remove('show');
+  });
+}
