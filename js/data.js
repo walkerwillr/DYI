@@ -59,7 +59,7 @@ function renderTreeToHTML() {
 function renderNodeToHTML(node, level = 'top') {
     let html = `<div class="node-container" data-node-id="${node.id}" data-level="${level}">`;
     html += '<div class="node-wrapper">';
-    html += `<div class="node ${level !== 'top' ? 'secondary' : ''}">${escapeHtml(node.name)}</div>`;
+    html += `<div class="node">${escapeHtml(node.name)}</div>`;
     html += '<div class="action-buttons">';
     html += '<span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>';
     html += '<button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button>';
@@ -105,8 +105,11 @@ function addNode(name, parentId = null) {
 function removeNode(id) {
     const node = nodes.get(id);
     if (node) {
+        // Remover todos os filhos recursivamente
         removeNodeChildren(node);
+        // Remover o nó do mapa
         nodes.delete(id);
+        // Remover da lista de nós raiz se for um nó raiz
         const rootIndex = rootNodes.indexOf(node);
         if (rootIndex > -1) {
             rootNodes.splice(rootIndex, 1);
@@ -139,9 +142,9 @@ function getAllNodesAsArray() {
 const initialStateHTML = `
     <div class="node-container">
         <div class="node-group" style="padding-top: 0;">
-            <div class="node-container" data-node-id="1" data-level="top">
+            <div class="node-container" data-level="top">
                 <div class="node-wrapper">
-                    <div class="node">CEO | LEO</div>
+                    <div class="node">CEO | LEONARDO</div>
                     <div class="action-buttons">
                         <span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>
                         <button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button>
@@ -150,40 +153,31 @@ const initialStateHTML = `
                 </div>
                 <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
                 <div class="node-group">
-                    <!-- Subordinado 1 -->
-                    <div class="node-container" data-node-id="2" data-level="child">
-                        <div class="node-wrapper"><div class="node secondary">Diretor A | Carlos</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
+                    <div class="node-container">
+                        <div class="node-wrapper">
+                            <div class="node">CFO | KARINE</div>
+                            <div class="action-buttons">
+                                <span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>
+                                <button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button>
+                                <button class="action-button add-button" title="Adicionar Colaborador">+</button>
+                                <button class="action-button remove-button" title="Remover Colaborador">-</button>
+                            </div>
+                        </div>
                         <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
-                    </div>
-                    <!-- Subordinado 2 -->
-                    <div class="node-container" data-node-id="3" data-level="child">
-                        <div class="node-wrapper"><div class="node secondary">Diretor B | Ana</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
-                        <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
-                    </div>
-                    <!-- Subordinado 3 -->
-                    <div class="node-container" data-node-id="4" data-level="child">
-                        <div class="node-wrapper"><div class="node secondary">Diretor C | Pedro</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
-                        <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
-                    </div>
-                    <!-- Subordinado 4 -->
-                    <div class="node-container" data-node-id="5" data-level="child">
-                        <div class="node-wrapper"><div class="node secondary">Diretor D | Sofia</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
-                        <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
-                    </div>
-                    <!-- Subordinado 5 -->
-                    <div class="node-container" data-node-id="6" data-level="child">
-                        <div class="node-wrapper"><div class="node secondary">Diretor E | Lucas</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
-                        <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
-                    </div>
-                    <!-- Subordinado 6 -->
-                    <div class="node-container" data-node-id="7" data-level="child">
-                        <div class="node-wrapper"><div class="node secondary">Diretor F | Julia</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
-                        <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
-                    </div>
-                    <!-- Subordinado 7 -->
-                    <div class="node-container" data-node-id="8" data-level="child">
-                        <div class="node-wrapper"><div class="node secondary">Diretor G | Mateus</div><div class="action-buttons"><span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button><button class="action-button add-button" title="Adicionar Colaborador">+</button><button class="action-button remove-button" title="Remover Colaborador">-</button></div></div>
-                        <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                        <div class="node-group">
+                            <div class="node-container">
+                                <div class="node-wrapper">
+                                    <div class="node secondary">FINANCEIRO | LUCAS</div>
+                                    <div class="action-buttons">
+                                        <span class="goals-icon" title="Definir Metas"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>
+                                        <button class="action-button edit-button" title="Editar Nome"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button>
+                                        <button class="action-button add-button" title="Adicionar Colaborador">+</button>
+                                        <button class="action-button remove-button" title="Remover Colaborador">-</button>
+                                    </div>
+                                </div>
+                                <div class="goals-modal"><h3>Metas</h3><textarea placeholder="Descreva as metas aqui..."></textarea></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
