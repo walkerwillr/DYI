@@ -36,7 +36,6 @@ export function NodeDetailsPanel({
 }: NodeDetailsPanelProps) {
   if (!node) return null
 
-  const goalsList = node.goals ? node.goals.split('\n').filter(goal => goal.trim()) : []
   const createdDate = new Date(node.created_at).toLocaleDateString('pt-BR')
   const updatedDate = new Date(node.updated_at).toLocaleDateString('pt-BR')
 
@@ -73,21 +72,17 @@ export function NodeDetailsPanel({
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Target className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium text-sm">Metas ({goalsList.length})</span>
+            <span className="font-medium text-sm">Metas e Descrição</span>
           </div>
           
-          {goalsList.length > 0 ? (
+          {node.goals ? (
             <ScrollArea className="h-32">
-              <div className="space-y-2">
-                {goalsList.map((goal, index) => (
-                  <div key={index} className="text-sm p-2 bg-muted rounded text-muted-foreground">
-                    • {goal.trim()}
-                  </div>
-                ))}
+              <div className="text-sm p-3 bg-muted rounded text-muted-foreground whitespace-pre-wrap">
+                {node.goals}
               </div>
             </ScrollArea>
           ) : (
-            <p className="text-sm text-muted-foreground italic">Nenhuma meta definida</p>
+            <p className="text-sm text-muted-foreground italic">Nenhuma meta ou descrição definida</p>
           )}
         </div>
         
