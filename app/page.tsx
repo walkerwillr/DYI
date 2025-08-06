@@ -104,13 +104,37 @@ function ConfigurationCheck({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function Header() {
+  return (
+    <header className="w-full bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
+      <div className="flex items-center gap-3">
+        <img 
+          src="http://dseclab.io/cdn/shop/files/Logo_DIYSEC_-_Rod_Lage_310x.png?v=1752180244"
+          alt="DIY SEC Logo"
+          className="h-10 w-10 object-contain"
+          onError={(e) => {
+            // Fallback if image fails to load
+            e.currentTarget.style.display = 'none'
+          }}
+        />
+        <h1 className="text-xl font-bold text-gray-900">
+          Organograma e Metas DIY
+        </h1>
+      </div>
+    </header>
+  )
+}
+
 export default function FlowchartApp() {
   return (
     <ConfigurationCheck>
-      <div className="w-full h-screen">
-        <ReactFlowProvider>
-          <FlowChart />
-        </ReactFlowProvider>
+      <div className="w-full h-screen flex flex-col">
+        <Header />
+        <div className="flex-1">
+          <ReactFlowProvider>
+            <FlowChart />
+          </ReactFlowProvider>
+        </div>
       </div>
     </ConfigurationCheck>
   )
@@ -540,7 +564,7 @@ function FlowChart() {
   }, [fetchNodes])
 
   return (
-    <div className="w-full h-screen relative">
+    <div className="w-full h-full relative">
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
         <div className={`px-3 py-1 rounded-full text-xs font-medium ${
           connectionStatus === 'checking' ? 'bg-yellow-100 text-yellow-800' :
@@ -642,19 +666,25 @@ function FlowChart() {
       </div>
 
       <Dialog open={isGoalsDialogOpen} onOpenChange={setIsGoalsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>Editar Metas</DialogTitle>
+            <DialogTitle>Editar Metas - {editingGoals?.name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Metas do Nodo</label>
+              <label className="text-sm font-medium mb-2 block">
+                Metas do Nodo (texto livre)
+              </label>
               <Textarea
                 value={newNodeGoals}
                 onChange={(e) => setNewNodeGoals(e.target.value)}
-                placeholder="Digite as metas do nodo (uma por linha)"
-                rows={6}
+                placeholder="Digite as metas, objetivos, descrições ou qualquer informação relevante para este nodo..."
+                rows={20}
+                className="w-full resize-none font-mono text-sm"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Use este espaço para descrever metas, objetivos, responsabilidades ou qualquer informação relevante.
+              </p>
             </div>
             <div className="flex gap-2">
               <Button onClick={handleSaveGoals}>
