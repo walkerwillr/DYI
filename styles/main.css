@@ -66,24 +66,25 @@ body {
     cursor: not-allowed;
 }
 
-/* VERSÃO CORRETA E FINAL */
 .org-chart {
     width: 100%;
-    overflow-x: auto; /* Cria a barra de rolagem */
-    -webkit-overflow-scrolling: touch;
-    
-    /* NOVO: Instrução para centralizar o conteúdo em linha (nosso wrapper) */
-    text-align: center; 
+    overflow-x: auto;
+    display: flex; /* Usaremos flexbox aqui */
+    /* IMPORTANTE: Alinhe ao início. O wrapper interno cuidará da centralização. */
+    justify-content: flex-start; 
 }
 
-/* VERSÃO FINAL CORRIGIDA */
 .chart-wrapper {
-    display: inline-block;
+    /* O wrapper é um item flex que deve ter no mínimo a largura do seu pai. */
+    min-width: 100%;
+    
+    /* Usamos flexbox aqui também para centralizar o organograma real. */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centraliza o organograma na horizontal */
+    
     padding: 2rem;
-    text-align: left;
-
-    /* LINHA ADICIONADA - ESTA DEVE SER A CHAVE */
-    position: relative; 
+    box-sizing: border-box; /* Essencial ao usar padding com min-width */
 }
 
 /* Container para nós no mesmo nível */
