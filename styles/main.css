@@ -66,25 +66,31 @@ body {
     cursor: not-allowed;
 }
 
+/* VERSÃO FINALÍSSIMA */
 .org-chart {
     width: 100%;
     overflow-x: auto;
-    display: flex; /* Usaremos flexbox aqui */
-    /* IMPORTANTE: Alinhe ao início. O wrapper interno cuidará da centralização. */
-    justify-content: flex-start; 
+    -webkit-overflow-scrolling: touch;
+    
+    /* Centraliza o wrapper que se comporta como um bloco em linha */
+    text-align: center;
 }
 
+/* VERSÃO FINALÍSSIMA */
 .chart-wrapper {
-    /* O wrapper é um item flex que deve ter no mínimo a largura do seu pai. */
-    min-width: 100%;
+    /* A PROPRIEDADE MÁGICA:
+       - Para dentro: se comporta como FLEX (mantendo o alinhamento).
+       - Para fora: se comporta como INLINE (ajustando o tamanho ao conteúdo e permitindo a rolagem). */
+    display: inline-flex;
     
-    /* Usamos flexbox aqui também para centralizar o organograma real. */
-    display: flex;
+    /* Estas propriedades de alinhamento interno estavam corretas e devem ser mantidas */
     flex-direction: column;
-    align-items: center; /* Centraliza o organograma na horizontal */
+    align-items: center;
     
+    /* O padding e o posicionamento relativo também estavam corretos */
     padding: 2rem;
-    box-sizing: border-box; /* Essencial ao usar padding com min-width */
+    position: relative;
+    box-sizing: border-box;
 }
 
 /* Container para nós no mesmo nível */
