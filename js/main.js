@@ -1,7 +1,7 @@
 // Arquivo principal da aplicação - Nova estrutura com Supabase
 
 let mainContainer = document.querySelector('.main-container');
-let orgChart = document.querySelector('.org-chart');
+let orgChart = document.querySelector('.chart-wrapper'); // <-- Apenas mude a classe aqui
 let undoButton = document.getElementById('undo-button');
 
 document.addEventListener('DOMContentLoaded', async function () {
