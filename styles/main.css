@@ -66,15 +66,15 @@ body {
     cursor: not-allowed;
 }
 
-/* VERSÃO FINALÍSSIMA */
 .org-chart {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    
-    /* Centraliza o wrapper que se comporta como um bloco em linha */
-    text-align: center;
+
+    display: flex;
+    justify-content: center; /* Centraliza corretamente mesmo com scroll horizontal */
 }
+
 
 .chart-wrapper {
     display: inline-flex;
