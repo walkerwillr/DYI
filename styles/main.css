@@ -1,11 +1,14 @@
 /* Estilos para o corpo e fontes com fundo branco */
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f9fafb; /* bg-gray-50 */
-    color: #1f2937; /* text-gray-800 */
-    min-height: 100vh;
-    margin: 0; /* Remove margens padrão do navegador */
-    padding: 2rem; /* Mantém um espaçamento geral */
+    font-family: 'Inter', sans-serif;
+    background-color: #f9fafb;
+    color: #1f2937;
+    display: flex; 
+    justify-content: flex-start; 
+    align-items: flex-start; 
+    min-height: 100vh;
+    padding: 2rem;
+    overflow-x: auto;
 }
 
 /* Container principal que inclui o logo e título */
@@ -68,21 +71,11 @@ body {
 
 /* Estrutura do organograma */
 .org-chart {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 80px;
-    text-align: center;
-    
-    /* --- REGRAS ADICIONADAS PARA ROLAGEM --- */
-    width: 100%; /* Garante que o container ocupe o espaço disponível */
-    overflow-x: auto; /* A MÁGICA ACONTECE AQUI: Adiciona a rolagem horizontal */
-    -webkit-overflow-scrolling: touch; /* Melhora a experiência em celulares */
-    padding: 2rem; /* Adiciona um respiro interno para o conteúdo não colar nas bordas */
-    background-color: white; /* Opcional: um fundo para destacar a área de rolagem */
-    border-radius: 0.5rem; /* Opcional: cantos arredondados */
-    border: 1px solid #e5e7eb; /* Opcional: uma borda sutil */
-    box-sizing: border-box; /* Garante que o padding não afete a largura total */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 80px;
+    text-align: center;
 }
 
 /* Container para nós no mesmo nível */
