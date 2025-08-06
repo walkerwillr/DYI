@@ -69,20 +69,21 @@ body {
     cursor: not-allowed;
 }
 
-/* Estrutura do organograma */
+/* Altere esta regra */
 .org-chart {
-    /* REMOVEMOS display:flex e suas propriedades */
-    
     width: 100%;
-    overflow-x: auto; /* A propriedade mais importante */
-    -webkit-overflow-scrolling: touch; /* Para rolagem suave em mobile */
-    
-    /* Apenas para estética */
-    background-color: #ffffff;
+    overflow-x: auto; /* Apenas cria a barra de rolagem */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Adicione esta nova regra */
+.chart-wrapper {
+    /* Usa flexbox para centralizar seu filho (o organograma) */
+    display: flex;
+    justify-content: center;
+
+    /* Adiciona um espaçamento para o organograma respirar */
     padding: 2rem;
-    border-radius: 0.5rem;
-    text-align: center; /* Centraliza o conteúdo inicial antes de ele expandir */
-    box-sizing: border-box;
 }
 
 /* Container para nós no mesmo nível */
@@ -181,18 +182,7 @@ body {
     color: #4f46e5;
 }
 
-/* Container para um nó e seus filhos */
-.node-container {
-    /*
-     * Isso transforma o contêiner principal do organograma em um bloco
-     * cuja largura é determinada pelo seu conteúdo, e não pelo pai.
-     * Isso força o overflow a acontecer no .org-chart.
-    */
-    display: inline-block;
 
-    /* Garante que o alinhamento de texto não afete o layout */
-    text-align: left;
-}
 
 /* Modal de Metas (Centralizado na Tela) */
 .goals-modal {
