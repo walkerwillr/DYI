@@ -1,14 +1,11 @@
-/* Estilos para o corpo e fontes com fundo branco */
+/* VERSÃO CORRETA */
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f9fafb;
-    color: #1f2937;
-    display: flex; 
-    justify-content: flex-start; 
-    align-items: flex-start; 
-    min-height: 100vh;
-    padding: 2rem;
-    overflow-x: auto;
+    font-family: 'Inter', sans-serif;
+    background-color: #f9fafb; /* bg-gray-50 */
+    color: #1f2937; /* text-gray-800 */
+    min-height: 100vh;
+    margin: 0; /* Garante que não haja margens inesperadas */
+    padding: 2rem; /* Mantém um espaçamento geral na página */
 }
 
 /* Container principal que inclui o logo e título */
