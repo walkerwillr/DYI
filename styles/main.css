@@ -76,22 +76,17 @@ body {
     text-align: center;
 }
 
-/* VERSÃO FINALÍSSIMA */
 .chart-wrapper {
-    /* A PROPRIEDADE MÁGICA:
-       - Para dentro: se comporta como FLEX (mantendo o alinhamento).
-       - Para fora: se comporta como INLINE (ajustando o tamanho ao conteúdo e permitindo a rolagem). */
     display: inline-flex;
-    
-    /* Estas propriedades de alinhamento interno estavam corretas e devem ser mantidas */
     flex-direction: column;
     align-items: center;
-    
-    /* O padding e o posicionamento relativo também estavam corretos */
     padding: 2rem;
     position: relative;
     box-sizing: border-box;
+
+    min-width: max-content; /* <-- ESSA LINHA É A CHAVE */
 }
+
 
 /* Container para nós no mesmo nível */
 .node-group {
