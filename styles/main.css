@@ -76,18 +76,14 @@ body {
     text-align: center; 
 }
 
-/* VERSÃO CORRETA E FINAL */
+/* VERSÃO FINAL CORRIGIDA */
 .chart-wrapper {
-    /* Faz o wrapper se ajustar ao tamanho do organograma
-       e permite que ele seja centralizado pelo text-align do pai. */
     display: inline-block;
-
-    /* Adiciona um espaçamento interno para o organograma não colar nas bordas */
     padding: 2rem;
-
-    /* Reseta o alinhamento para o conteúdo DENTRO do organograma,
-       para que ele comece pela esquerda, como deve ser. */
     text-align: left;
+
+    /* LINHA ADICIONADA - ESTA DEVE SER A CHAVE */
+    position: relative; 
 }
 
 /* Container para nós no mesmo nível */
