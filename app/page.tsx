@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import ReactFlow, {
   Node,
@@ -21,11 +21,13 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { Plus, Edit, Trash2, Target, Search, X, RefreshCw } from 'lucide-react'
+import { Plus, Edit, Trash2, Target, Search, X, RefreshCw, Eye } from 'lucide-react'
 import { toast } from "@/hooks/use-toast"
 import { CustomNode } from "@/components/custom-node"
 import { NodeDetailsPanel } from "@/components/node-details-panel"
 import { ExportImportDialog } from "@/components/export-import-dialog"
+import { GoalsViewer } from "@/components/goals-viewer"
+import { Separator } from "@/components/ui/separator"
 
 interface NodeData {
   id: number
@@ -155,6 +157,8 @@ function FlowChart() {
   const [searchTerm, setSearchTerm] = useState("")
   const [showSearch, setShowSearch] = useState(false)
   const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null)
+  const selectedNode = useMemo(() => nodeData.find(n => n.id === selectedNodeId) || null, [nodeData, selectedNodeId])
+  const [isGoalsViewerOpen, setIsGoalsViewerOpen] = useState(false)
   const [isOnlineMode, setIsOnlineMode] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'online' | 'offline'>('checking')
 
@@ -338,6 +342,10 @@ function FlowChart() {
           onAddChild: handleAddChild,
           onEditGoals: handleEditGoals,
           onSelect: setSelectedNodeId,
+          onViewGoals: (id: number) => {
+            setSelectedNodeId(id)
+            setIsGoalsViewerOpen(true)
+          },
         },
         selected: selectedNodeId === treeNode.id,
       })
@@ -367,7 +375,6 @@ function FlowChart() {
   }
 
   const handleEditNode = (id: number) => {
-    console.log('handleEditNode called with id:', id)
     const node = nodeData.find(n => n.id === id)
     if (node) {
       setEditingNode(node)
@@ -377,7 +384,6 @@ function FlowChart() {
   }
 
   const handleEditGoals = (id: number) => {
-    console.log('handleEditGoals called with id:', id)
     const node = nodeData.find(n => n.id === id)
     if (node) {
       setEditingGoals(node)
@@ -387,7 +393,6 @@ function FlowChart() {
   }
 
   const handleAddChild = (parentId: number) => {
-    console.log('handleAddChild called with parentId:', parentId)
     setIsAddingChild(parentId)
     setNewNodeName("")
     setIsEditDialogOpen(true)
@@ -648,6 +653,14 @@ function FlowChart() {
 
         <div className="flex gap-2">
           <Button
+            onClick={() => setIsGoalsViewerOpen(true)}
+            disabled={!selectedNode}
+            title={selectedNode ? "Ver metas em modo focado" : "Selecione um nodo para visualizar"}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Ver Metas
+          </Button>
+          <Button
             variant="outline"
             onClick={() => {
               setNodes([])
@@ -665,35 +678,38 @@ function FlowChart() {
         </div>
       </div>
 
+      {/* Editar Metas — sticky header with Save button and scrollable Textarea */}
       <Dialog open={isGoalsDialogOpen} onOpenChange={setIsGoalsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>Editar Metas - {editingGoals?.name}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Metas do Nodo (texto livre)
-              </label>
-              <Textarea
-                value={newNodeGoals}
-                onChange={(e) => setNewNodeGoals(e.target.value)}
-                placeholder="Digite as metas, objetivos, descrições ou qualquer informação relevante para este nodo..."
-                rows={20}
-                className="w-full resize-none font-mono text-sm"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Use este espaço para descrever metas, objetivos, responsabilidades ou qualquer informação relevante.
-              </p>
+        <DialogContent className="max-w-4xl w-[min(100vw-2rem,900px)] p-0">
+          <div className="sticky top-0 z-10 bg-background/80 backdrop-blur border-b p-4">
+            <div className="flex items-center justify-between gap-2">
+              <DialogHeader className="p-0">
+                <DialogTitle>Editar Metas - {editingGoals?.name}</DialogTitle>
+              </DialogHeader>
+              <div className="flex items-center gap-2">
+                <Button onClick={handleSaveGoals}>
+                  Salvar
+                </Button>
+                <Button variant="outline" onClick={() => setIsGoalsDialogOpen(false)}>
+                  Cancelar
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={handleSaveGoals}>
-                Salvar Metas
-              </Button>
-              <Button variant="outline" onClick={() => setIsGoalsDialogOpen(false)}>
-                Cancelar
-              </Button>
-            </div>
+          </div>
+
+          <div className="p-4">
+            <label className="text-sm font-medium mb-2 block">
+              Metas do Nodo (texto livre)
+            </label>
+            <Textarea
+              value={newNodeGoals}
+              onChange={(e) => setNewNodeGoals(e.target.value)}
+              placeholder="Digite as metas, objetivos, descrições ou qualquer informação relevante para este nodo..."
+              className="w-full h-[60vh] resize-none font-mono text-sm overflow-auto"
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              O campo acima é rolável para textos longos. O botão Salvar está sempre visível no topo.
+            </p>
           </div>
         </DialogContent>
       </Dialog>
@@ -726,6 +742,13 @@ function FlowChart() {
         <MiniMap />
         <Background variant="dots" gap={12} size={1} />
       </ReactFlow>
+
+      <GoalsViewer
+        open={isGoalsViewerOpen}
+        onOpenChange={setIsGoalsViewerOpen}
+        title={selectedNode?.name || "Metas"}
+        goalsText={selectedNode?.goals || ""}
+      />
     </div>
   )
 }
